@@ -45,6 +45,7 @@ $tk_notification_db_version = '0.1';
 //
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-form.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-remove-subscription-form.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-database-methods.php';
 
 
@@ -58,7 +59,17 @@ if ( is_admin() ) {
 }
 
 
+//
+// Load admin area style
+//
+function tk_notifications_enqueue_admin_style() {
 
+  $src = plugin_dir_url( __FILE__ ) . 'admin/css/tk-notifications-admin.css';
+  
+  wp_enqueue_style( 'tk-notifications-admin', $src, array(), null, 'all' );
+
+}
+add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_style');
 
 
 
@@ -177,6 +188,57 @@ function tk_notifications_process_subscription() {
 add_action( 'admin_post_nopriv_contact_form', 'tk_notifications_process_subscription' );
 add_action( 'admin_post_contact_form', 'tk_notifications_process_subscription' );
 
+
+//
+// Process the removal of subscription form
+//
+
+function tk_notifications_process_remove_subscription() {
+
+	// get the nonce
+	if ( isset( $_POST['tk_notifications_nonce_field'] ) ) {
+
+		$nonce = $_POST['tk_notifications_nonce_field'];
+
+	} else {
+
+		$nonce = false;
+
+	}
+
+	// process the form
+	if ( isset( $_POST['tk_notifications_remove_email'] ) ) {
+
+		// verify nonce
+		if ( ! wp_verify_nonce( $nonce, 'tk_notifications_remove_subscription_form_action' ) ) {
+
+      wp_die( 'Incorrect nonce!' );
+
+    } else {
+
+      $email = sanitize_email( $_POST[ 'tk_notifications_remove_email' ] );
+
+      $form_taxonomies = $_POST[ 'taxonomies' ];
+      $user_selection = [];  // User selection
+
+      if ( ! empty( $email ) ) {
+
+          $success = tk_notifications_database_remove_table_data( $email );
+
+          if ( $success === false ) {
+            echo "Removing subscription failed.";
+          } else {
+            echo "Subscription removed successfully.";
+          }
+
+      } else {
+        echo '<p>Please enter a valid email address</p>'; // Tämä viesti pitää ohjata admin paneeliin!!!
+			}
+		}
+	}
+}
+add_action( 'admin_post_nopriv_contact_form', 'tk_notifications_process_remove_subscription' );
+add_action( 'admin_post_contact_form', 'tk_notifications_process_remove_subscription' );
 
 //
 // Read the categories and tags related to a post

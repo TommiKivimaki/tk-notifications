@@ -114,6 +114,29 @@ function tk_notifications_database_update_table_data( $data, $args ) {
 }
 
 
+//
+// Removes an existing subscription row in the table
+//
+
+function tk_notifications_database_remove_table_data( $data ) {
+
+  global $wpdb;
+
+  $email = $data;
+
+	$table_name = $wpdb->prefix . 'tk_notifications';
+
+	$success = $wpdb->delete(
+		$table_name,
+		array(
+			'email' => $email
+    )
+	);
+
+  return $success;
+}
+
+
 
 //
 // Checks if subsciption is found from the table.
