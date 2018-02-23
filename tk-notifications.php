@@ -7,8 +7,8 @@ Author:       Tommi Kivimäki
 Version:      0.1
 Text Domain:  tk-notifications
 Domain Path:  /languages
-License:      GPL v2 or later
-License URI:  https://www.gnu.org/licenses/gpl-2.0.txt
+License:      
+License URI:  
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -56,6 +56,8 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-database-m
 if ( is_admin() ) {
   require_once plugin_dir_path( __FILE__ ) . 'admin/admin-menu.php';
   require_once plugin_dir_path( __FILE__ ) . 'admin/settings-page.php';
+  require_once plugin_dir_path( __FILE__ ) . 'admin/settings-register.php';
+  require_once plugin_dir_path( __FILE__ ) . 'admin/settings-callbacks.php';
 }
 
 
@@ -232,6 +234,7 @@ function tk_notifications_process_remove_subscription() {
           }
 
       } else {
+
         echo '<p>Please enter a valid email address</p>'; // Tämä viesti pitää ohjata admin paneeliin!!!
 			}
 		}
@@ -239,6 +242,7 @@ function tk_notifications_process_remove_subscription() {
 }
 add_action( 'admin_post_nopriv_contact_form', 'tk_notifications_process_remove_subscription' );
 add_action( 'admin_post_contact_form', 'tk_notifications_process_remove_subscription' );
+
 
 //
 // Read the categories and tags related to a post

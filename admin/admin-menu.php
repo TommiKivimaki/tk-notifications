@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 //
 // Create settings page
 //
+
 function tk_notifications_add_toplevel_menu() {
 
 	/*

@@ -19,31 +19,31 @@ function tk_notifications_display_settings_page() {
   
 	?>
   
-	<div class="wrap">
+	<div class="admin-settings-page">
   <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-  <!-- <form action="options.php" method="post"> -->
+  <form action="options.php" method="post">
   
   <?php
   
   // output security fields
-  // settings_fields( 'tk_notifications_options' );
+  settings_fields( 'tk_notifications_settings' );
   
   // output setting sections
-  // do_settings_sections( 'tk_notifications' );
+  do_settings_sections( 'tk_notifications' );
   
   // submit button
-  // submit_button();
+  submit_button();
   
   ?>
   
-  <!-- </form>  -->
+  </form> 
   
   <?php tk_notifications_create_form(); ?>
   <h2>Subscription list</h2>
   
   
   <?php tk_notifications_create_subscription_display(); ?>
-
+  
   <h2>Remove subscriptions</h2>
   
   <?php tk_notifications_create_remove_subscription_form(); ?>
