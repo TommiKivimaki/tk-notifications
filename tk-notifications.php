@@ -64,6 +64,7 @@ if ( is_admin() ) {
 //
 // Load admin area style
 //
+
 function tk_notifications_enqueue_admin_style() {
 
   $src = plugin_dir_url( __FILE__ ) . 'admin/css/tk-notifications-admin.css';
@@ -73,6 +74,16 @@ function tk_notifications_enqueue_admin_style() {
 }
 add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_style');
 
+
+//
+// Returns plugin's default options if they are not found from the database.
+//
+
+function tk_notifications_options_default() {
+  // No options at the moment
+
+  return array(); 
+}
 
 
 
@@ -142,19 +153,14 @@ function tk_notifications_process_subscription() {
 
       if ( ! empty( $email ) ) {
 
-        echo '<p>You selected: Just for debugging to see the array is correct</p>';
         foreach ($form_taxonomies as $key => $value) {
-          echo '<p>taxonomies "'. $key .' - '. $value .'"</p>';
           if ( $_POST[ $value ] != null ) {
             array_push($user_selection, $_POST[ $value ]);
           }
         }
 
-        echo '<p>*** USER SELECTED ***</p>';
         foreach ($user_selection as $key => $value) {
-          echo '<p>taxonomies "'. $key .' - '. $value .'"</p>';
           foreach ($value as $key => $valueb) {
-            echo '<p>sub-array: "'. $key .' - '. $valueb .'"</p>';
           }
         }
         // Check if email exists
@@ -165,9 +171,9 @@ function tk_notifications_process_subscription() {
           $success = tk_notifications_database_update_table_data( $email, $user_selection );
 
           if ($success === false ) {
-            echo "Updating an existing subscription failed.";
+            // echo "Updating an existing subscription failed.";
           } else {
-            echo "Subscription successfully updated.";
+            // echo "Subscription successfully updated.";
           }
 
         } else {
@@ -175,14 +181,14 @@ function tk_notifications_process_subscription() {
           $success = tk_notifications_database_create_table_data( $email, $user_selection );
 
           if ( $success === false ) {
-            echo "Adding a new subscription failed.";
+            // echo "Adding a new subscription failed.";
           } else {
-            echo "New subscription successfully added.";
+            // echo "New subscription successfully added.";
           }
         }
 
       } else {
-        echo '<p>Please enter a valid email address</p>';
+        // echo '<p>Please enter a valid email address</p>';
 			}
 		}
 	}

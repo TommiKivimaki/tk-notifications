@@ -3,14 +3,10 @@
 */
 
 .subscription_list {
-    width: 100%;
-}
-
-.subscription_list {
     background-color: #bcbcbc;
     margin-top: 1em;
     margin-bottom: 1em;
-    padding: 1em;
+    padding: .5em;
 }
 
 .subscription_list th {
@@ -29,6 +25,27 @@
 }
 
 .subscription_list td {
-    padding-left: .5em;
-    padding-right: 1.5em;
+    padding: 3px;
+}
+
+
+/* Table headings */
+.subscription_list .sub-head {
+    text-align: center;
+}
+
+/* ID column */
+.subscription_list .sub-id {
+    width: 20%;
+    text-align: center;
+}
+
+/* Email column */
+.subscription_list .sub-email {
+    width: 40%;
+}
+
+/* Subscription column */
+.subscription_list .sub-tax {
+    width: 40%;
 }
