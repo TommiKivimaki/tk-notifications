@@ -27,9 +27,9 @@ with this program. If not, visit: https://www.gnu.org/licenses/
 
 // exit if file is called directly
 if ( ! defined( 'ABSPATH' ) ) {
-
+  
   exit;
-
+  
 }
 
 
@@ -66,11 +66,11 @@ if ( is_admin() ) {
 //
 
 function tk_notifications_enqueue_admin_style() {
-
+  
   $src = plugin_dir_url( __FILE__ ) . 'admin/css/tk-notifications-admin.css';
   
   wp_enqueue_style( 'tk-notifications-admin', $src, array(), null, 'all' );
-
+  
 }
 add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_style');
 
@@ -81,7 +81,7 @@ add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_style');
 
 function tk_notifications_options_default() {
   // No options at the moment
-
+  
   return array(); 
 }
 
@@ -92,9 +92,9 @@ function tk_notifications_options_default() {
 //
 
 function tk_notifications_on_deactivation() {
-
+  
   if ( ! current_user_can( 'activate_plugins') ) return;
-
+  
   tk_notifications_database_remove_table();
 }
 register_deactivation_hook( __FILE__, 'tk_notifications_on_deactivation' );
@@ -105,9 +105,9 @@ register_deactivation_hook( __FILE__, 'tk_notifications_on_deactivation' );
 //
 
 function tk_notifications_on_uninstall() {
-
+  
   if ( ! current_user_can( 'activate_plugins') ) return;
-
+  
   tk_notifications_database_remove_table();
 }
 register_uninstall_hook( __FILE__, 'tk_notifications_on_uninstall' );
@@ -124,71 +124,82 @@ register_uninstall_hook( __FILE__, 'tk_notifications_on_uninstall' );
 //
 
 function tk_notifications_process_subscription() {
-
+  
 	// get the nonce
 	if ( isset( $_POST['tk_notifications_nonce_field'] ) ) {
-
+    
 		$nonce = $_POST['tk_notifications_nonce_field'];
-
+    
 	} else {
-
+    
 		$nonce = false;
-
+    
 	}
-
+  
 	// process the form
 	if ( isset( $_POST['tk_notifications-email'] ) ) {
-
+    
 		// verify nonce
 		if ( ! wp_verify_nonce( $nonce, 'tk_notifications_form_action' ) ) {
-
+      
       wp_die( 'Incorrect nonce!' );
-
+      
     } else {
-
+      
+      $url = $_POST[ 'url' ]; // URL to the form 
       $email = sanitize_email( $_POST[ 'tk_notifications-email' ] );
-
+      
       $form_taxonomies = $_POST[ 'taxonomies' ];
       $user_selection = [];  // User selection
-
+      
       if ( ! empty( $email ) ) {
-
+        
         foreach ($form_taxonomies as $key => $value) {
           if ( $_POST[ $value ] != null ) {
             array_push($user_selection, $_POST[ $value ]);
           }
         }
-
+        
         foreach ($user_selection as $key => $value) {
           foreach ($value as $key => $valueb) {
           }
         }
         // Check if email exists
         $exists = tk_notifications_database_table_data_exists( $email );
-
-        if ( $exists == true ) {
-
+        
+        if ( $exists == true ) {  // Update existing subscription
+          
           $success = tk_notifications_database_update_table_data( $email, $user_selection );
-
+          
           if ($success === false ) {
             // echo "Updating an existing subscription failed.";
+            set_transient( 'tk_notifications_update', 'FAILED', MINUTE_IN_SECONDS );
+            tk_notifications_redirect_after_form( $url );
           } else {
             // echo "Subscription successfully updated.";
+            set_transient( 'tk_notifications_update', 'SUCCESS', MINUTE_IN_SECONDS );
+            tk_notifications_redirect_after_form( $url );
           }
-
+          
         } else {
-
+          
           $success = tk_notifications_database_create_table_data( $email, $user_selection );
-
+          
           if ( $success === false ) {
             // echo "Adding a new subscription failed.";
+            set_transient( 'tk_notifications_add', 'FAILED', MINUTE_IN_SECONDS );
+            tk_notifications_redirect_after_form( $url );
           } else {
             // echo "New subscription successfully added.";
+            set_transient( 'tk_notifications_add', 'SUCCESS', MINUTE_IN_SECONDS );
+            tk_notifications_redirect_after_form( $url );
           }
         }
-
+        
       } else {
         // echo '<p>Please enter a valid email address</p>';
+        set_transient( 'tk_notifications_email', 'FAILED', MINUTE_IN_SECONDS );
+        tk_notifications_redirect_after_form( $url );
 			}
 		}
 	}
@@ -202,46 +213,52 @@ add_action( 'admin_post_contact_form', 'tk_notifications_process_subscription' )
 //
 
 function tk_notifications_process_remove_subscription() {
-
+  
 	// get the nonce
 	if ( isset( $_POST['tk_notifications_nonce_field'] ) ) {
-
+    
 		$nonce = $_POST['tk_notifications_nonce_field'];
-
+    
 	} else {
-
+    
 		$nonce = false;
-
+    
 	}
-
+  
 	// process the form
 	if ( isset( $_POST['tk_notifications_remove_email'] ) ) {
-
+    
 		// verify nonce
 		if ( ! wp_verify_nonce( $nonce, 'tk_notifications_remove_subscription_form_action' ) ) {
-
+      
       wp_die( 'Incorrect nonce!' );
-
+      
     } else {
-
+      
+      $url = $_POST[ 'url' ]; // URL to the form 
       $email = sanitize_email( $_POST[ 'tk_notifications_remove_email' ] );
-
+      
       $form_taxonomies = $_POST[ 'taxonomies' ];
       $user_selection = [];  // User selection
-
+      
       if ( ! empty( $email ) ) {
-
-          $success = tk_notifications_database_remove_table_data( $email );
-
-          if ( $success === false ) {
-            echo "Removing subscription failed.";
-          } else {
-            echo "Subscription removed successfully.";
-          }
-
+        
+        $success = tk_notifications_database_remove_table_data( $email );
+        
+        if ( $success === false ) {
+          // echo "Removing subscription failed.";
+          set_transient( 'tk_notifications_remove', 'FAILED', MINUTE_IN_SECONDS );
+          tk_notifications_redirect_after_form( $url );
+        } else {
+          // echo "Subscription removed successfully.";
+          set_transient( 'tk_notifications_remove', 'SUCCESS', MINUTE_IN_SECONDS );
+          tk_notifications_redirect_after_form( $url );
+        }
+        
       } else {
-
-        echo '<p>Please enter a valid email address</p>'; // Tämä viesti pitää ohjata admin paneeliin!!!
+        // Invalid email address 
+        set_transient( 'tk_notifications_email', 'FAILED', MINUTE_IN_SECONDS );
+        tk_notifications_redirect_after_form( $url );
 			}
 		}
 	}
@@ -250,111 +267,112 @@ add_action( 'admin_post_nopriv_contact_form', 'tk_notifications_process_remove_s
 add_action( 'admin_post_contact_form', 'tk_notifications_process_remove_subscription' );
 
 
+function tk_notifications_redirect_after_form( $url ) {
+  if ( is_admin() ) {
+    wp_redirect( admin_url( 'admin.php?page=tk_notifications' ) );
+  } else {
+    wp_redirect( $url );
+  }
+  exit;
+}
+
+
 //
 // Read the categories and tags related to a post
 //
 
- function tk_notifications_read_post_categories_tags( $ID, $post ) {
-   // // Get post by post ID.
-   // if ( ! $post = get_post() ) {
-   //   return '';
-   // }
-
-   // Get post type by post.
-   $post_type = $post->post_type;
-
-   // Get a list of categories and extract their names
-   $post_categories = get_the_terms( $post->ID, 'category' );
-   if ( ! empty( $post_categories ) && ! is_wp_error( $post_categories ) ) {
-     $categories = wp_list_pluck( $post_categories, 'name' );
-   }
-   // Get a list of tags and extract their names
-   $post_tags = get_the_terms( $post->ID, 'post_tag' );
-   if ( ! empty( $post_tags ) && ! is_wp_error( $post_tags ) ) {
-     $tags = wp_list_pluck( $post_tags, 'name' );
-   }
-
-   // // Combine Categories and tags, with category first
-   // $categories_tags = array_merge( $categories, $tags );
-print_r( $categories );
-print_r( $tags );
-
-   tk_notifications_create_mailing_list( $categories, $tags, $ID, $post );
- }
-add_action( 'publish_post', 'tk_notifications_read_post_categories_tags', 10, 2 );
-
-
-//
-// Create a mailing list baesd on subscriptions
-//
-
-function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID, $post ) {
-
-  // Read all subsribers
-  global $wpdb;
-
-  $table_name = $wpdb->prefix . 'tk_notifications';
-
-  $query = "SELECT * FROM $table_name";
-
-  $data = $wpdb->get_results( $query );
-
-  $mailing_list = [];
-
-
-  // Go through all subscribers and their subscriptions
-  if ( null !== $data ) {
-    foreach ($data as $key => $user) {  // Loop through rows
-      $user_email = $user->email;
-
-      $subscription = json_decode( $user->tax_selection ); // Decode user's subscription
-
-      // loop through arrays in tax_selection column
-      foreach ($subscription as $key => $taxonomy_arrays) {
-        // loop through all taxonomy_arrays to get individual taxonomies
-        foreach ($taxonomy_arrays as $key => $taxonomy) {
-          // if users taxonomy selection matches post taxonomies push user to a mailing_list
-          if (in_array( $taxonomy, $post_categories ) || in_array( $taxonomy, $post_tags )) {
-            array_push( $mailing_list, $user_email );
-            break 2;
+function tk_notifications_read_post_categories_tags( $ID, $post ) {
+  // // Get post by post ID.
+  // if ( ! $post = get_post() ) {
+    //   return '';
+    // }
+    
+    // Get post type by post.
+    $post_type = $post->post_type;
+    
+    // Get a list of categories and extract their names
+    $post_categories = get_the_terms( $post->ID, 'category' );
+    if ( ! empty( $post_categories ) && ! is_wp_error( $post_categories ) ) {
+      $categories = wp_list_pluck( $post_categories, 'name' );
+    }
+    // Get a list of tags and extract their names
+    $post_tags = get_the_terms( $post->ID, 'post_tag' );
+    if ( ! empty( $post_tags ) && ! is_wp_error( $post_tags ) ) {
+      $tags = wp_list_pluck( $post_tags, 'name' );
+    }
+    
+    tk_notifications_create_mailing_list( $categories, $tags, $ID, $post );
+  }
+  add_action( 'publish_post', 'tk_notifications_read_post_categories_tags', 10, 2 );
+  
+  
+  //
+  // Create a mailing list baesd on subscriptions
+  //
+  
+  function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID, $post ) {
+    
+    // Read all subsribers
+    global $wpdb;
+    
+    $table_name = $wpdb->prefix . 'tk_notifications';
+    
+    $query = "SELECT * FROM $table_name";
+    
+    $data = $wpdb->get_results( $query );
+    
+    $mailing_list = [];
+    
+    
+    // Go through all subscribers and their subscriptions
+    if ( null !== $data ) {
+      foreach ($data as $key => $user) {  // Loop through rows
+        $user_email = $user->email;
+        
+        $subscription = json_decode( $user->tax_selection ); // Decode user's subscription
+        
+        // loop through arrays in tax_selection column
+        foreach ($subscription as $key => $taxonomy_arrays) {
+          // loop through all taxonomy_arrays to get individual taxonomies
+          foreach ($taxonomy_arrays as $key => $taxonomy) {
+            // if users taxonomy selection matches post taxonomies push user to a mailing_list
+            if (in_array( $taxonomy, $post_categories ) || in_array( $taxonomy, $post_tags )) {
+              array_push( $mailing_list, $user_email );
+              break 2;
+            }
           }
         }
       }
+      
+      tk_notifications_send_email( $mailing_list, $ID, $post );
     }
-    // echo '<pre>';
-    // echo '<div>*** PRINT MAILING LIST: </div>';
-    // print_r( $mailing_list );
-    // echo '</pre>';
-
-    tk_notifications_send_email( $mailing_list, $ID, $post );
   }
-}
-
-
-//
-// Send an email to subscribers
-//
-
-function tk_notifications_send_email( $mailing_list, $ID, $post ) {
-
-  echo '<pre>';
-  echo '<div>*** Sending mail to a list: </div>';
-  print_r( $mailing_list );
-  echo "About the post ID: ";
-  print_r( $ID );
-  echo " POST: ";
-  print_r( $post );
-  echo '</pre>';
-
-}
-
-
-
-//
-// Method to send the emails
-//
-
-function post_published_notification( $ID, $post ) {
+  
+  
+  //
+  // Send an email to subscribers
+  //
+  
+  function tk_notifications_send_email( $mailing_list, $ID, $post ) {
+    
+    echo '<pre>';
+    echo '<div>*** Sending mail to a list: </div>';
+    print_r( $mailing_list );
+    echo "About the post ID: ";
+    print_r( $ID );
+    echo " POST: ";
+    print_r( $post );
+    echo '</pre>';
+    
+  }
+  
+  
+  
+  //
+  // Method to send the emails
+  //
+  
+  function post_published_notification( $ID, $post ) {
     $author = $post->post_author; /* Post author ID. */
     $name = get_the_author_meta( 'display_name', $author );
     $email = get_the_author_meta( 'user_email', $author );
@@ -367,5 +385,6 @@ function post_published_notification( $ID, $post ) {
     $message .= sprintf( 'View: %s', $permalink );
     $headers[] = '';
     wp_mail( $to, $subject, $message, $headers );
-}
-// add_action( 'publish_post', 'post_published_notification', 10, 2 );
+  }
+  // add_action( 'publish_post', 'post_published_notification', 10, 2 );
+  
