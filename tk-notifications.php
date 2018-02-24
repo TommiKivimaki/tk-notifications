@@ -191,6 +191,7 @@ function tk_notifications_process_subscription() {
             tk_notifications_redirect_after_form( $url );
           } else {
             // echo "New subscription successfully added.";
+            tk_notifications_create_email( [ $email ], null, null, true );
             set_transient( 'tk_notifications_add', 'SUCCESS', MINUTE_IN_SECONDS );
             tk_notifications_redirect_after_form( $url );
           }
@@ -266,6 +267,10 @@ function tk_notifications_process_remove_subscription() {
 add_action( 'admin_post_nopriv_contact_form', 'tk_notifications_process_remove_subscription' );
 add_action( 'admin_post_contact_form', 'tk_notifications_process_remove_subscription' );
 
+
+//
+// Redirect after form submission
+//
 
 function tk_notifications_redirect_after_form( $url ) {
   if ( current_user_can( 'activate_plugins' ) ) {
@@ -344,7 +349,7 @@ function tk_notifications_read_post_categories_tags( $ID, $post ) {
         }
       }
       
-      tk_notifications_send_email( $mailing_list, $ID, $post );
+      tk_notifications_create_email( $mailing_list, $ID, $post, false );
     }
   }
   
@@ -353,17 +358,22 @@ function tk_notifications_read_post_categories_tags( $ID, $post ) {
   // Send an email to subscribers
   //
   
-  function tk_notifications_send_email( $mailing_list, $ID, $post ) {
-    
-    echo '<pre>';
-    echo '<div>*** Sending mail to a list: </div>';
-    print_r( $mailing_list );
-    echo "About the post ID: ";
-    print_r( $ID );
-    echo " POST: ";
-    print_r( $post );
-    echo '</pre>';
-    
+  function tk_notifications_create_email( $mailing_list, $ID, $post, $confirmation ) {
+
+    $mail_subject = '';
+    $mail_message = '';
+
+    if ( $confirmation == true ) {  // Sends a confirmation message to a new subscriber
+      $mail_subject = sprintf('You have subscribed to email notifications');
+      $mail_message = sprintf('Hi! \n\n You have subscribed to get email notifications from this website.');
+    } else {
+      $title = $post->post_title;
+      $permalink = get_permalink( $ID );
+      $mail_subject = sprintf( 'Published: %s', $title );
+      $mail_message = sprintf('Hi! \n\n You can view the article here: %s \n', $permalink );
+    }
+
+    tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post );
   }
   
   
@@ -372,19 +382,25 @@ function tk_notifications_read_post_categories_tags( $ID, $post ) {
   // Method to send the emails
   //
   
-  function post_published_notification( $ID, $post ) {
-    $author = $post->post_author; /* Post author ID. */
-    $name = get_the_author_meta( 'display_name', $author );
-    $email = get_the_author_meta( 'user_email', $author );
-    $title = $post->post_title;
-    $permalink = get_permalink( $ID );
-    $edit = get_edit_post_link( $ID, '' );
-    $to[] = sprintf( '%s <%s>', $name, $email );
-    $subject = sprintf( 'Published: %s', $title );
-    $message = sprintf ('Congratulations, %s! Your article “%s” has been published.' . "\n\n", $name, $title );
-    $message .= sprintf( 'View: %s', $permalink );
-    $headers[] = '';
-    wp_mail( $to, $subject, $message, $headers );
+  function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post ) {
+
+    // $author = $post->post_author; /* Post author ID. */
+    // $name = get_the_author_meta( 'display_name', $author );
+    // $email = get_the_author_meta( 'user_email', $author );
+    // $title = $post->post_title;
+    // $permalink = get_permalink( $ID );
+    // $edit = get_edit_post_link( $ID, '' );
+    // $to[] = sprintf( '%s <%s>', $name, $email );
+    // $subject = sprintf( 'Published: %s', $title );
+    // $message = sprintf ('Congratulations, %s! Your article “%s” has been published.' . "\n\n", $name, $title );
+    // $message .= sprintf( 'View: %s', $permalink );
+    $headers[] = 'From: Me Myself <me@example.net>';
+    wp_mail( $mailing_list, $mail_subject, $mail_message, $headers );
+    // print_r($mailing_list);
+    // print_r($mail_subject);
+    // print_r($mail_message);
+    // print_r($ID);
+    // print_r($post);
   }
   // add_action( 'publish_post', 'post_published_notification', 10, 2 );
   
