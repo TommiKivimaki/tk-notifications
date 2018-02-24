@@ -45,6 +45,6 @@ function tk_notifications_create_remove_subscription_form() {
   <?php
 
 }
-add_shortcode('tknotificationremove', 'tk_notifications_create_remove_subscription_form');
+add_shortcode('tknotificationsremove', 'tk_notifications_create_remove_subscription_form');
 
 

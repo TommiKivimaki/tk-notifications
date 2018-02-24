@@ -268,7 +268,7 @@ add_action( 'admin_post_contact_form', 'tk_notifications_process_remove_subscrip
 
 
 function tk_notifications_redirect_after_form( $url ) {
-  if ( is_admin() ) {
+  if ( current_user_can( 'activate_plugins' ) ) {
     wp_redirect( admin_url( 'admin.php?page=tk_notifications' ) );
   } else {
     wp_redirect( $url );
