@@ -83,11 +83,23 @@ add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_style');
 
 
 //
-// reCAPTCHA client site key
+// reCAPTCHA SITE_KEY and SITE_SECRET
 // 
 
-define('SITE_KEY', '6Lej60cUAAAAAO6TOFk9LA4BDUyn0bKAdyh5jWTD'); 
-define('SITE_SECRET', '6Lej60cUAAAAANIrhgBWmLzCS-M3Afw7yDE07jpp');
+function tk_notifications_recaptcha_keys() {
+  
+  $options = get_option( 'tk_notifications_options', tk_notifications_options_default() );
+  
+  $id    = isset( $args['id'] )    ? $args['id']    : '';
+  $label = isset( $args['label'] ) ? $args['label'] : '';
+  
+  define('SITE_KEY', isset( $options['site_key_option'] ) ? sanitize_text_field( $options['site_key_option'] ) : '');
+  define('SITE_SECRET', isset( $options['site_secret_option'] ) ? sanitize_text_field( $options['site_secret_option'] ) : '');
+}
+add_action( 'wp_enqueue_scripts', 'tk_notifications_recaptcha_keys');
+
+// define('SITE_KEY', '6Lej60cUAAAAAO6TOFk9LA4BDUyn0bKAdyh5jWTD'); 
+// define('SITE_SECRET', '6Lej60cUAAAAANIrhgBWmLzCS-M3Afw7yDE07jpp');
 
 
 //
@@ -107,7 +119,7 @@ add_action('wp_enqueue_scripts', 'tk_notifications_enqueue_recaptcha');
 
 function tk_notifications_display_recaptcha() {
   
-  echo '<div class="g-recaptcha" data-sitekey=SITE_KEY data-callback="recaptcha_callback"></div>';
+  echo '<div class="g-recaptcha" data-sitekey='. SITE_KEY .' data-callback="recaptcha_callback"></div>';
 }
 
 
@@ -134,7 +146,7 @@ function tk_notifications_verify_captcha() {
 //
 
 function tk_notifications_options_default() {
- 
+  
   return array(
     'site_key_option'    => 'UNDEFINED',
     'site_secret_option' => 'UNDEFINED'
@@ -176,7 +188,7 @@ register_uninstall_hook( __FILE__, 'tk_notifications_on_uninstall' );
 
 
 //
-// Process the submitted add subscription form
+// Process the add subscription form
 //
 
 function tk_notifications_process_subscription() {
@@ -190,11 +202,11 @@ function tk_notifications_process_subscription() {
 		$nonce = false;
   }
   
-  // If site visitor verify recaptcha. If admin there's no need to verify recaptcha
-  if( tk_notifications_verify_captcha() && !current_user_can( 'activate_plugins') || current_user_can( 'activate_plugins')) {
+  // process the form
+  if ( isset( $_POST['tk_notifications-email'] ) ) {
     
-    // process the form
-    if ( isset( $_POST['tk_notifications-email'] ) ) {
+    // If site visitor verify recaptcha. If admin there's no need to verify recaptcha
+    if( tk_notifications_verify_captcha() && !current_user_can( 'activate_plugins') || current_user_can( 'activate_plugins')) {
       
       // verify nonce
       if ( ! wp_verify_nonce( $nonce, 'tk_notifications_form_action' ) ) {
@@ -259,10 +271,10 @@ function tk_notifications_process_subscription() {
           tk_notifications_redirect_after_form( $url );
         }
       }
+    } else {
+      set_transient( 'tk_notifications_recaptcha', 'FAILED', TRANSIENT_TIME );
+      tk_notifications_redirect_after_form( $url );
     }
-  } else {
-    set_transient( 'tk_notifications_recaptcha', 'FAILED', TRANSIENT_TIME );
-    tk_notifications_redirect_after_form( $url );
   }
 }
 add_action( 'admin_post_nopriv_contact_form', 'tk_notifications_process_subscription' );
@@ -275,17 +287,19 @@ add_action( 'admin_post_contact_form', 'tk_notifications_process_subscription' )
 
 function tk_notifications_process_remove_subscription() {
   
-	// get the nonce
-	if ( isset( $_POST['tk_notifications_nonce_field'] ) ) {
-		$nonce = $_POST['tk_notifications_nonce_field'];
-	} else {
-		$nonce = false;
-	}
+  $url = $_POST[ 'url' ]; // URL to the form 
   
-  if( tk_notifications_verify_captcha() ) {
+  // get the nonce
+  if ( isset( $_POST['tk_notifications_nonce_field'] ) ) {
+    $nonce = $_POST['tk_notifications_nonce_field'];
+  } else {
+    $nonce = false;
+  }
+  
+  // process the form
+  if ( isset( $_POST['tk_notifications_remove_email'] ) ) {
     
-    // process the form
-    if ( isset( $_POST['tk_notifications_remove_email'] ) ) {
+    if( tk_notifications_verify_captcha() && !current_user_can( 'activate_plugins') || current_user_can( 'activate_plugins')) {
       
       // verify nonce
       if ( ! wp_verify_nonce( $nonce, 'tk_notifications_remove_subscription_form_action' ) ) {
@@ -294,11 +308,7 @@ function tk_notifications_process_remove_subscription() {
         
       } else {
         
-        $url = $_POST[ 'url' ]; // URL to the form 
         $email = sanitize_email( $_POST[ 'tk_notifications_remove_email' ] );
-        
-        $form_taxonomies = $_POST[ 'taxonomies' ];
-        $user_selection = [];  // User selection
         
         if ( ! empty( $email ) ) {
           
@@ -320,10 +330,10 @@ function tk_notifications_process_remove_subscription() {
           tk_notifications_redirect_after_form( $url );
         }
       }
+    } else {
+      set_transient( 'tk_notifications_recaptcha', 'FAILED', TRANSIENT_TIME );
+      tk_notifications_redirect_after_form( $url );
     }
-  } else {
-    set_transient( 'tk_notifications_recaptcha', 'FAILED', TRANSIENT_TIME );
-    tk_notifications_redirect_after_form( $url );
   }
 }
 add_action( 'admin_post_nopriv_contact_form', 'tk_notifications_process_remove_subscription' );

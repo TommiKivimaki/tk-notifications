@@ -38,6 +38,16 @@ function tk_notifications_display_settings_page() {
   
   </form> 
   
+  <div class="subscription-monitor">
+  
+  <?php 
+  
+  tk_notifications_callback_field_remove_subscribers();
+  tk_notifications_callback_field_list_subscribers();
+  ?>
+  </div><!-- .subscription-monitor -->
+  
+  
 	</div>
   
   
