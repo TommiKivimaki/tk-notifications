@@ -10,16 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 //
-// Validate settings
-//
-
-function tk_notifications_callback_validate_options( $input ) {
-
-    return $input;
-}
-
-
-//
 //
 // Callbacks for sections
 //
@@ -29,9 +19,15 @@ function tk_notifications_callback_validate_options( $input ) {
 //  Show section to add subscribers
 //
 
-function tk_notifications_section_subscriptions() {
+function tk_notifications_callback_section_subscriptions() {
 
-	echo '<p>You can create new subscriptions using this form.</p>';
+	// echo '<p>You can create new subscriptions using this form.</p>';
+
+}
+
+function tk_notifications_callback_section_recaptcha() {
+
+  echo '<p>You need to set the reCAPTCHA keys here before site visitors can use the subscription forms. You can get the keys from Google reCAPTCHA page. </p>';
 
 }
 
@@ -41,6 +37,24 @@ function tk_notifications_section_subscriptions() {
 // Callbacks for settings fields
 //
 ////////////////////////////////
+
+
+//
+//  Show settings field to list all subscribers
+//
+
+function tk_notifications_callback_text_field( $args ) {
+
+	$options = get_option( 'tk_notifications_options', tk_notifications_options_default() );
+
+  $id    = isset( $args['id'] )    ? $args['id']    : '';
+  $label = isset( $args['label'] ) ? $args['label'] : '';
+  
+  $value = isset( $options[$id] ) ? sanitize_text_field( $options[$id] ) : '';
+
+  echo '<input id="tk_notifications_options_'. $id .'" name="tk_notifications_options['. $id .']" type="text" size="40" value="'. $value .'"><br />';
+	echo '<label for="tk_notifications_options_'. $id .'">'. $label .'</label>';
+}
 
 
 //

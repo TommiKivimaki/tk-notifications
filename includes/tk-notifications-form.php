@@ -32,6 +32,8 @@ function tk_notifications_create_form() {
       echo '<p class="tk_notifications_update_failed">Updating your subscription failed for some reason</p>';
     } elseif ( get_transient('tk_notifications_email') == 'FAILED' ) {
       echo '<p class="tk_notifications_email_failed">Please enter a valid email address</p>';
+    } elseif ( get_transient('tk_notifications_recaptcha') == 'FAILED' ) {
+      echo '<p class="tk_notifications_recaptcha_failed">Please fill in the reCAPTCHA.</p>';
     }
 
   ?>
@@ -61,8 +63,7 @@ function tk_notifications_create_form() {
   <p>E-mail address:</p>
   <p><input id="email" type="text" name="tk_notifications-email"></p>
   
-  <!-- <div class="g-recaptcha" data-sitekey= "6Lej60cUAAAAAO6TOFk9LA4BDUyn0bKAdyh5jWTD
-  "></div> -->
+  <?php tk_notifications_display_recaptcha(); ?>
   
   <p><input type="submit" value="Submit Subscription"></p>
   

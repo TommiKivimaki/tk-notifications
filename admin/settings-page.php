@@ -21,18 +21,18 @@ function tk_notifications_display_settings_page() {
   
 	<div class="admin-settings-page">
   <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-  <!-- <form action="options.php" method="post"> -->
+  <form action="options.php" method="post">
   
   <?php
   
   // output security fields
-  settings_fields( 'tk_notifications_settings' );
+  settings_fields( 'tk_notifications_options' );
   
   // output setting sections
   do_settings_sections( 'tk_notifications' );
   
   // submit button
-  // submit_button();
+  submit_button();
   
   ?>
   
