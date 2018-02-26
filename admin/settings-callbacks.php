@@ -40,7 +40,7 @@ function tk_notifications_callback_section_recaptcha() {
 
 
 //
-//  Show settings field to list all subscribers
+//  Text field processing
 //
 
 function tk_notifications_callback_text_field( $args ) {
