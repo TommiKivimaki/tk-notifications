@@ -19,11 +19,13 @@ function tk_notifications_create_remove_subscription_form() {
   
   
   if ( get_transient('tk_notifications_remove') == 'SUCCESS' ) {
-    echo '<p class="tk_notifications_remove_success">Subscription  successfully removed.</p>';
+    echo '<p class="tk_notifications_remove_success">Subscription successfully removed.</p>';
   } elseif ( get_transient('tk_notifications_remove') == 'FAILED' ) {
-    echo '<p class="tk_notifications_remove_failed">Removing subscription failed for some reason</p>';
+    echo '<p class="tk_notifications_remove_failed">Removing subscription failed for some reason.</p>';
+  } elseif ( get_transient('tk_notifications_nosub') == 'FAILED' ) {
+    echo '<p class="tk_notifications_nosub_failed">No subscription found with that email address.</p>';
   } elseif ( get_transient('tk_notifications_email') == 'FAILED' ) {
-    echo '<p class="tk_notifications_email_failed">Please enter a valid email address</p>';
+    echo '<p class="tk_notifications_email_failed">Please enter a valid email address.</p>';
   } elseif ( get_transient('tk_notifications_recaptcha') == 'FAILED' ) {
     echo '<p class="tk_notifications_recaptcha_failed">Please fill in the reCAPTCHA.</p>';
   }
@@ -38,7 +40,11 @@ function tk_notifications_create_remove_subscription_form() {
   
   <p><input id="email" type="text" name="tk_notifications_remove_email"></p>
   
-  <?php tk_notifications_display_recaptcha(); ?>
+  <?php 
+  if ( !is_admin() ) { 
+    tk_notifications_display_recaptcha();
+  }
+  ?>
   
   <p><input type="submit" value="Remove My Subscription"></p>
   
