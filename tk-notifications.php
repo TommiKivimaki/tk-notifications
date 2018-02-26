@@ -128,7 +128,6 @@ function tk_notifications_options_default() {
 }
 
 
-
 //
 // Do stuff when plugin is deactivated
 //
@@ -255,6 +254,7 @@ function tk_notifications_add_form( $nonce, $url ) {
   }
 }
 
+
 //
 // Remove subscriptions
 //
@@ -302,8 +302,6 @@ function tk_notifications_remove_form( $nonce, $url ) {
 }
 
 
-
-
 //
 // Fetches the nonce
 //
@@ -335,10 +333,6 @@ function tk_notifications_redirect_after_form( $url ) {
 //
 
 function tk_notifications_read_post_categories_tags( $ID, $post ) {
-  // // Get post by post ID.
-  // if ( ! $post = get_post() ) {
-    //   return '';
-    // }
     
     // Get post type by post.
     $post_type = $post->post_type;
@@ -427,27 +421,13 @@ function tk_notifications_read_post_categories_tags( $ID, $post ) {
   
   
   //
-  // Method to send the emails
+  // Method to send an email
   //
   
   function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post ) {
     
-    // $author = $post->post_author; /* Post author ID. */
-    // $name = get_the_author_meta( 'display_name', $author );
-    // $email = get_the_author_meta( 'user_email', $author );
-    // $title = $post->post_title;
-    // $permalink = get_permalink( $ID );
-    // $edit = get_edit_post_link( $ID, '' );
-    // $to[] = sprintf( '%s <%s>', $name, $email );
-    // $subject = sprintf( 'Published: %s', $title );
-    // $message = sprintf ('Congratulations, %s! Your article “%s” has been published.' . "\n\n", $name, $title );
-    // $message .= sprintf( 'View: %s', $permalink );
-    $headers[] = 'From: Me Myself <me@example.net>';
+    $headers[] = 'From: WordPress <me@example.net>';
     wp_mail( $mailing_list, $mail_subject, $mail_message, $headers );
-    // print_r($mailing_list);
-    // print_r($mail_subject);
-    // print_r($mail_message);
-    // print_r($ID);
-    // print_r($post);
+
   }
   
