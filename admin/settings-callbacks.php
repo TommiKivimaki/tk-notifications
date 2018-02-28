@@ -19,12 +19,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 //  Show section to add subscribers
 //
 
-function tk_notifications_callback_section_subscriptions() {
-  
-	// echo '<p>You can create new subscriptions using this form.</p>';
-  
-}
-
 function tk_notifications_callback_section_recaptcha() {
   
   echo '<p>You need to set the reCAPTCHA keys here before site visitors can use the subscription forms. You can get the keys from Google reCAPTCHA page. </p>';
