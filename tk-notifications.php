@@ -263,53 +263,6 @@ function tk_notifications_add_form( $nonce, $url ) {
 }
 
 
-// //
-// // Remove subscriptions
-// //
-
-// function tk_notifications_remove_form( $nonce, $url ) {
-  
-//   // verify nonce
-//   if ( ! wp_verify_nonce( $nonce, 'tk_notifications_remove_subscription_form_action' ) ) {
-    
-//     wp_die( 'Incorrect nonce!' );
-    
-//   } else {
-    
-//     $email = sanitize_email( $_POST[ 'tk_notifications_remove_email' ] );
-    
-//     if ( ! empty( $email ) ) {
-      
-//       // Check if email exists
-//       $exists = tk_notifications_database_table_data_exists( $email );
-      
-//       if ( $exists == true ) {  // Update existing subscription
-        
-//         $success = tk_notifications_database_remove_table_data( $email );
-        
-//         if ( $success === false ) {
-//           // echo "Removing subscription failed.";
-//           set_transient( 'tk_notifications_remove', 'FAILED', TRANSIENT_TIME );
-//           tk_notifications_redirect_after_form( $url );
-//         } else {
-//           // echo "Subscription removed successfully.";
-//           set_transient( 'tk_notifications_remove', 'SUCCESS', TRANSIENT_TIME );
-//           tk_notifications_redirect_after_form( $url );
-//         }
-//       } else {
-//         // No subscription found with the email address.
-//         set_transient( 'tk_notifications_nosub', 'FAILED', TRANSIENT_TIME );
-//         tk_notifications_redirect_after_form( $url );
-//       } 
-//     } else {
-//       // Invalid email address 
-//       set_transient( 'tk_notifications_email', 'FAILED', TRANSIENT_TIME );
-//       tk_notifications_redirect_after_form( $url );
-//     }
-//   }
-// }
-
-
 //
 // Fetches the nonce
 //
