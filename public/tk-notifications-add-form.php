@@ -39,7 +39,7 @@ function tk_notifications_create_form() {
   ?>
   
   <form method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
-  <input type="hidden" name="action" value="contact_form">
+  <!-- <input type="hidden" name="action" value="contact_form">
   <input type="hidden" name="url" value="<?php echo $current_url; ?>">
 
   <p><label for="email">What you want to subscribe?</label></p>
@@ -61,8 +61,10 @@ function tk_notifications_create_form() {
   <p><input type="hidden" name="taxonomies[]" value="rating"></p>
   
   <p>E-mail address:</p>
-  <p><input id="email" type="text" name="tk_notifications-email"></p>
-  
+  <p><input id="email" type="text" name="tk_notifications-email"></p> -->
+
+  <?php tk_notifications_form_layout(); ?>
+
   <?php tk_notifications_display_recaptcha(); ?>
   
   <p><input type="submit" value="Submit Subscription"></p>

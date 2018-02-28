@@ -40,6 +40,7 @@ define('TRANSIENT_TIME', 5);  // Transient max lifetime
 require_once plugin_dir_path( __FILE__ ) . 'public/tk-notifications-add-form.php';
 require_once plugin_dir_path( __FILE__ ) . 'public/tk-notifications-remove-form.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-database-methods.php';
+require_once plugin_dir_path( __FILE__ ) . 'templates/tk-notifications-form-layout.php';
 
 
 //
