@@ -89,7 +89,7 @@ function tk_notifications_callback_field_list_subscribers() {
   foreach ($subscription_list as $key => $subscription) {
     
     $hash = md5($subscription->id . $subscription->email);
-    $remove_link = home_url() . '/tk_notifications_unsubscribe' . '=' . $hash;
+    $remove_link = home_url() . '/wp-json/tk_notifications/v1/unsubscribe?hash' . '=' . $subscription->email;
 
     $sub = json_decode( $subscription->tax_selection );
     

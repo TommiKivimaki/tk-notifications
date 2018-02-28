@@ -436,9 +436,23 @@ function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message
 // Custom API callback
 //
 
-function tk_notifications_api_callback( $data ) {
+// function tk_notifications_api_callback( WP_REST_Request $request ) {
+  function tk_notifications_api_callback( WP_REST_Request $request ) {
+
+    $parameters = $request->get_query_params(); 
+    $hash_value = $parameters['hash'];
+    $results = implode( $parameters );
   
-  return 'API callback is done!';
+    $return_value = '';
+
+    if ( tk_notifications_database_table_data_exists( $hash_value ) ) {
+      $return_value = 'Löytyi taulusta: '. $hash_value;
+      tk_notifications_database_remove_table_data( $hash_value );
+    } else {
+      $return_value = 'Tuntematon tilaaja: '. $hash_value;
+    }
+
+  return $return_value;
 }
 
 
@@ -449,5 +463,7 @@ add_action( 'rest_api_init', function() {
   register_rest_route( 'tk_notifications/v1', 'unsubscribe', array(
     'methods' => 'GET',
     'callback' => 'tk_notifications_api_callback',
-  ));
+    'args' => array(
+      'hash'
+  )));
 });
