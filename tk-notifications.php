@@ -333,101 +333,121 @@ function tk_notifications_redirect_after_form( $url ) {
 //
 
 function tk_notifications_read_post_categories_tags( $ID, $post ) {
-    
-    // Get post type by post.
-    $post_type = $post->post_type;
-    
-    // Get a list of categories and extract their names
-    $post_categories = get_the_terms( $post->ID, 'category' );
-    if ( ! empty( $post_categories ) && ! is_wp_error( $post_categories ) ) {
-      $categories = wp_list_pluck( $post_categories, 'name' );
-    }
-    // Get a list of tags and extract their names
-    $post_tags = get_the_terms( $post->ID, 'post_tag' );
-    if ( ! empty( $post_tags ) && ! is_wp_error( $post_tags ) ) {
-      $tags = wp_list_pluck( $post_tags, 'name' );
-    }
-    
-    tk_notifications_create_mailing_list( $categories, $tags, $ID, $post );
+  
+  // Get post type by post.
+  $post_type = $post->post_type;
+  
+  // Get a list of categories and extract their names
+  $post_categories = get_the_terms( $post->ID, 'category' );
+  if ( ! empty( $post_categories ) && ! is_wp_error( $post_categories ) ) {
+    $categories = wp_list_pluck( $post_categories, 'name' );
   }
-  add_action( 'publish_post', 'tk_notifications_read_post_categories_tags', 10, 2 );
+  // Get a list of tags and extract their names
+  $post_tags = get_the_terms( $post->ID, 'post_tag' );
+  if ( ! empty( $post_tags ) && ! is_wp_error( $post_tags ) ) {
+    $tags = wp_list_pluck( $post_tags, 'name' );
+  }
+  
+  tk_notifications_create_mailing_list( $categories, $tags, $ID, $post );
+}
+add_action( 'publish_post', 'tk_notifications_read_post_categories_tags', 10, 2 );
+
+
+//
+// Create a mailing list based on subscriptions
+//
+
+function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID, $post ) {
+  
+  // Read all subsribers
+  global $wpdb;
+  
+  $table_name = $wpdb->prefix . 'tk_notifications';
+  
+  $query = "SELECT * FROM $table_name";
+  
+  $data = $wpdb->get_results( $query );
+  
+  $mailing_list = [];
   
   
-  //
-  // Create a mailing list based on subscriptions
-  //
-  
-  function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID, $post ) {
-    
-    // Read all subsribers
-    global $wpdb;
-    
-    $table_name = $wpdb->prefix . 'tk_notifications';
-    
-    $query = "SELECT * FROM $table_name";
-    
-    $data = $wpdb->get_results( $query );
-    
-    $mailing_list = [];
-    
-    
-    // Go through all subscribers and their subscriptions
-    if ( null !== $data ) {
-      foreach ($data as $key => $user) {  // Loop through rows
-        $user_email = $user->email;
-        
-        $subscription = json_decode( $user->tax_selection ); // Decode user's subscription
-        
-        // loop through arrays in tax_selection column
-        foreach ($subscription as $key => $taxonomy_arrays) {
-          // loop through all taxonomy_arrays to get individual taxonomies
-          foreach ($taxonomy_arrays as $key => $taxonomy) {
-            // if users taxonomy selection matches post taxonomies push user to a mailing_list
-            if (in_array( $taxonomy, $post_categories ) || in_array( $taxonomy, $post_tags )) {
-              array_push( $mailing_list, $user_email );
-              break 2;
-            }
+  // Go through all subscribers and their subscriptions
+  if ( null !== $data ) {
+    foreach ($data as $key => $user) {  // Loop through rows
+      $user_email = $user->email;
+      
+      $subscription = json_decode( $user->tax_selection ); // Decode user's subscription
+      
+      // loop through arrays in tax_selection column
+      foreach ($subscription as $key => $taxonomy_arrays) {
+        // loop through all taxonomy_arrays to get individual taxonomies
+        foreach ($taxonomy_arrays as $key => $taxonomy) {
+          // if users taxonomy selection matches post taxonomies push user to a mailing_list
+          if (in_array( $taxonomy, $post_categories ) || in_array( $taxonomy, $post_tags )) {
+            array_push( $mailing_list, $user_email );
+            break 2;
           }
         }
       }
-      
-      tk_notifications_create_email( $mailing_list, $ID, $post, false );
-    }
-  }
-  
-  
-  //
-  // Send an email to subscribers
-  //
-  
-  function tk_notifications_create_email( $mailing_list, $ID, $post, $confirmation ) {
-    
-    $mail_subject = '';
-    $mail_message = '';
-    
-    if ( $confirmation == true ) {  // Sends a confirmation message to a new subscriber
-      $mail_subject = sprintf('You have subscribed to email notifications');
-      $mail_message = sprintf('Hi! \n\n You have subscribed to get email notifications from this website.');
-    } else {
-      $title = $post->post_title;
-      $permalink = get_permalink( $ID );
-      $mail_subject = sprintf( 'Published: %s', $title );
-      $mail_message = sprintf('Hi! \n\n You can view the article here: %s \n', $permalink );
     }
     
-    tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post );
+    tk_notifications_create_email( $mailing_list, $ID, $post, false );
   }
-  
-  
-  
-  //
-  // Method to send an email
-  //
-  
-  function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post ) {
-    
-    $headers[] = 'From: WordPress <me@example.net>';
-    wp_mail( $mailing_list, $mail_subject, $mail_message, $headers );
+}
 
+
+//
+// Send an email to subscribers
+//
+
+function tk_notifications_create_email( $mailing_list, $ID, $post, $confirmation ) {
+  
+  $mail_subject = '';
+  $mail_message = '';
+  
+  if ( $confirmation == true ) {  // Sends a confirmation message to a new subscriber
+    $mail_subject = sprintf('You have subscribed to email notifications');
+    $mail_message = sprintf('Hi! \n\n You have subscribed to get email notifications from this website.');
+  } else {
+    $title = $post->post_title;
+    $permalink = get_permalink( $ID );
+    $mail_subject = sprintf( 'Published: %s', $title );
+    $mail_message = sprintf('Hi! \n\n You can view the article here: %s \n', $permalink );
   }
   
+  tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post );
+}
+
+
+
+//
+// Method to send an email
+//
+
+function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post ) {
+  
+  $headers[] = 'From: WordPress <me@example.net>';
+  wp_mail( $mailing_list, $mail_subject, $mail_message, $headers );
+  
+}
+
+
+// 
+// Custom API callback
+//
+
+function tk_notifications_api_callback( $data ) {
+  
+  return 'API callback is done!';
+}
+
+
+// 
+// Register custom route
+//
+add_action( 'rest_api_init', function() {
+  register_rest_route( 'tk_notifications/v1', 'unsubscribe', array(
+    'methods' => 'GET',
+    'callback' => 'tk_notifications_api_callback',
+  ));
+});
