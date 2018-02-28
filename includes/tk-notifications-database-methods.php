@@ -8,6 +8,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
+
+
 //
 // Create a table to store subscriber information
 //
@@ -29,6 +31,7 @@ function tk_notifications_database_create_table() {
 			id int NOT NULL AUTO_INCREMENT,
 			email varchar(255) NOT NULL,
       tax_selection varchar(255) NOT NULL,
+			sub_hash varchar(255) NOT NULL,
 			PRIMARY KEY  (id)
 		) $charset_collate;";
 
@@ -39,7 +42,7 @@ function tk_notifications_database_create_table() {
 	}
 	add_option( "tk_notification_db_version", $tk_notification_db_version );
 }
-register_activation_hook( __FILE__, 'tk_notifications_database_create_table' );
+// register_activation_hook( __FILE__, 'tk_notifications_database_create_table' );
 
 
 
@@ -71,7 +74,8 @@ function tk_notifications_database_create_table_data( $data, $args ) {
   global $wpdb;
 
   $email = $data;
-  $tax_selection_json = json_encode( $args );
+	$tax_selection_json = json_encode( $args );
+	$sub_hash = md5( $email );
 
 	$table_name = $wpdb->prefix . 'tk_notifications';
 
@@ -79,7 +83,8 @@ function tk_notifications_database_create_table_data( $data, $args ) {
 		$table_name,
 		array(
 			'email' => $email,
-      'tax_selection' => $tax_selection_json,
+			'tax_selection' => $tax_selection_json,
+			'sub_hash' => $sub_hash,
     )
 	);
 }
@@ -122,14 +127,16 @@ function tk_notifications_database_remove_table_data( $data ) {
 
   global $wpdb;
 
-  $email = $data;
+	// $email = $data;
+	$sub_hash = $data;
 
 	$table_name = $wpdb->prefix . 'tk_notifications';
 
 	$success = $wpdb->delete(
 		$table_name,
 		array(
-			'email' => $email
+			// 'email' => $email
+			'sub_hash' => $sub_hash
     )
 	);
 
@@ -147,16 +154,16 @@ function tk_notifications_database_table_data_exists( $data ) {
 
 	global $wpdb;
 
-  $email = $data;
+  $sub_hash = $data;
 
   $table_name = $wpdb->prefix . 'tk_notifications';
 
   $query = $wpdb->prepare(
     "
-    SELECT email
+    SELECT sub_hash
     FROM $table_name
     WHERE EXISTS
-    (SELECT email FROM $table_name WHERE email = %s)", $data
+    (SELECT sub_hash FROM $table_name WHERE sub_hash = %s)", $data
   );
 
   $results = $wpdb->query( $query );

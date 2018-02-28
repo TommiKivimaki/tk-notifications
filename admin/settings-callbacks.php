@@ -61,12 +61,12 @@ function tk_notifications_callback_text_field( $args ) {
 //  Show remove subscription field
 //
 
-function tk_notifications_callback_field_add_subscribers() {
+// function tk_notifications_callback_field_add_subscribers() {
   
-  echo '<p>Pick the topics you want to subscribe and type in an email address.</p>';
+//   echo '<p>Pick the topics you want to subscribe and type in an email address.</p>';
   
-  tk_notifications_create_form();
-}
+//   tk_notifications_create_form();
+// }
 
 
 //
@@ -88,14 +88,13 @@ function tk_notifications_callback_field_list_subscribers() {
   
   foreach ($subscription_list as $key => $subscription) {
     
-    $hash = md5($subscription->id . $subscription->email);
-    $remove_link = home_url() . '/wp-json/tk_notifications/v1/unsubscribe?hash' . '=' . $subscription->email;
-
+    $sub_hash = $subscription->sub_hash;
+    $remove_link = home_url() . '/wp-json/tk_notifications/v1/unsubscribe?hash' . '=' . $sub_hash;
+    
     $sub = json_decode( $subscription->tax_selection );
     
     $sub_1d = tk_notifications_unwrap_arrays( $sub );
     $sub_string = implode(", ", $sub_1d);
-    
     
     echo '<tr>';
     echo '<td class="sub-id">';

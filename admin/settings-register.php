@@ -23,13 +23,6 @@ function tk_notifications_register_settings() {
         'tk_notifications_callback_section_recaptcha',  		// callback
         'tk_notifications'                        				// page where to display this section
 	);
-	
-    // add_settings_section(
-    //     'tk_notifications_section_subscriptions', 					// section ID
-    //     'Set, remove and monitor subscriptions',  					// section TITLE
-    //     'tk_notifications_callback_section_subscriptions',  		// callback
-    //     'tk_notifications'                        					// page where to display this section
-	// );
 
 	add_settings_field(
 		'recaptcha_site_key',                                      // settings field ID
@@ -48,31 +41,6 @@ function tk_notifications_register_settings() {
 		'tk_notifications_section_recaptcha',	                 // section name where to display this field.
 		['id' => 'site_secret_option', 'label' => 'Paste the Site Secret from Google here.' ]
 	);
-	
-    // add_settings_field(
-	// 	'remove_subscription',                                 // settings field ID
-	// 	'Remove subscription',                                 // settings field Title
-	// 	'tk_notifications_callback_field_remove_subscribers',  // settings field callback
-	// 	'tk_notifications',                                    // page where to display this field
-	// 	'tk_notifications_section_subscriptions'               // section name where to display this field.
-    // );
-    
-    // add_settings_field(
-	// 	'list_subscriptions',                               // settings field ID
-	// 	'Subscription list',                                // settings field Title
-	// 	'tk_notifications_callback_field_list_subscribers', // settings field callback
-	// 	'tk_notifications',                                 // page where to display this field
-	// 	'tk_notifications_section_subscriptions'            // section name where to display this field.
-	// );
-
-	// add_settings_field(
-	// 	'add_subscription',                                // settings field ID
-	// 	'Add subscription',                                // settings field Title
-	// 	'tk_notifications_callback_field_add_subscribers', // settings field callback
-	// 	'tk_notifications',                                // page where to display this field
-	// 	'tk_notifications_section_subscriptions'           // section name where to display this field.
-    // );
-
     
 }
 add_action( 'admin_init', 'tk_notifications_register_settings' );

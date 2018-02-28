@@ -45,10 +45,8 @@ function tk_notifications_display_settings_page() {
   <?php 
   
   // Show remove subscription form and subscription list
-  echo '<h2>Remove subscriptions</h2>';
-  echo '<p>Type in en email address you want to unsubscribe.</p>';
-  tk_notifications_callback_field_remove_subscribers();
   echo '<h2>Subscription list</h2>';
+  echo '<p>Click an ID to remove a subscription.</p>';
   tk_notifications_callback_field_list_subscribers();
   ?>
   

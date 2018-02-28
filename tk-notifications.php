@@ -4,7 +4,7 @@ Plugin Name:  TK Notifications
 Description:  Sends notifications to subscribed users when a new post is published.
 Plugin URI:
 Author:       Tommi Kivimäki
-Version:      0.1.0
+Version:      0.2.0
 Text Domain:  tk-notifications
 Domain Path:  /languages
 License:      
@@ -20,12 +20,11 @@ if ( ! defined( 'ABSPATH' ) ) {
   
 }
 
-
 //
 // Version number for the database table structure
 //
 global $tk_notification_db_version;
-$tk_notification_db_version = '0.1';
+$tk_notification_db_version = '1.0';
 
 
 // 
@@ -55,6 +54,15 @@ if ( is_admin() ) {
   require_once plugin_dir_path( __FILE__ ) . 'admin/settings-validate.php';
 }
 
+
+//
+// Activation
+//
+
+function tk_notifications_activate() {
+  tk_notifications_database_create_table();
+}
+register_activation_hook( __FILE__, 'tk_notifications_activate' );
 
 //
 // Load admin area style
@@ -440,16 +448,16 @@ function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message
   function tk_notifications_api_callback( WP_REST_Request $request ) {
 
     $parameters = $request->get_query_params(); 
-    $hash_value = $parameters['hash'];
+    $sub_hash = $parameters['hash'];
     $results = implode( $parameters );
   
     $return_value = '';
 
-    if ( tk_notifications_database_table_data_exists( $hash_value ) ) {
-      $return_value = 'Löytyi taulusta: '. $hash_value;
-      tk_notifications_database_remove_table_data( $hash_value );
+    if ( tk_notifications_database_table_data_exists( $sub_hash ) ) {
+      $return_value = 'Subscription found and removed: '. $sub_hash;
+      tk_notifications_database_remove_table_data( $sub_hash );
     } else {
-      $return_value = 'Tuntematon tilaaja: '. $hash_value;
+      $return_value = 'Subscription does not exist: '. $sub_hash;
     }
 
   return $return_value;
@@ -457,8 +465,9 @@ function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message
 
 
 // 
-// Register custom route
+// Register custom route to the API
 //
+
 add_action( 'rest_api_init', function() {
   register_rest_route( 'tk_notifications/v1', 'unsubscribe', array(
     'methods' => 'GET',
