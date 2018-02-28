@@ -3,9 +3,9 @@
 
 // exit if file is called directly
 if ( ! defined( 'ABSPATH' ) ) {
-    
+  
 	exit;
-    
+  
 }
 
 
@@ -20,15 +20,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 //
 
 function tk_notifications_callback_section_subscriptions() {
-
+  
 	// echo '<p>You can create new subscriptions using this form.</p>';
-
+  
 }
 
 function tk_notifications_callback_section_recaptcha() {
-
+  
   echo '<p>You need to set the reCAPTCHA keys here before site visitors can use the subscription forms. You can get the keys from Google reCAPTCHA page. </p>';
-
+  
 }
 
 
@@ -44,28 +44,28 @@ function tk_notifications_callback_section_recaptcha() {
 //
 
 function tk_notifications_callback_text_field( $args ) {
-
+  
 	$options = get_option( 'tk_notifications_options', tk_notifications_options_default() );
-
+  
   $id    = isset( $args['id'] )    ? $args['id']    : '';
   $label = isset( $args['label'] ) ? $args['label'] : '';
   
   $value = isset( $options[$id] ) ? sanitize_text_field( $options[$id] ) : '';
-
+  
   echo '<input id="tk_notifications_options_'. $id .'" name="tk_notifications_options['. $id .']" type="text" size="40" value="'. $value .'"><br />';
 	echo '<label for="tk_notifications_options_'. $id .'">'. $label .'</label>';
 }
 
 
 //
-//  Show settings field to list all subscribers
+//  Show remove subscription field
 //
 
 function tk_notifications_callback_field_add_subscribers() {
-
-    echo '<p>Pick the topics you want to subscribe and type in an email address.</p>';
-
-    tk_notifications_create_form();
+  
+  echo '<p>Pick the topics you want to subscribe and type in an email address.</p>';
+  
+  tk_notifications_create_form();
 }
 
 
@@ -74,10 +74,10 @@ function tk_notifications_callback_field_add_subscribers() {
 //
 
 function tk_notifications_callback_field_list_subscribers() {
-
-    // echo '<p>Subscriptions</p>';
-
-    $subscription_list = tk_notifications_database_get_table();
+  
+  // echo '<p>Subscriptions</p>';
+  
+  $subscription_list = tk_notifications_database_get_table();
   
   echo '<table class="subscription_list">';
   echo '<tr>';
@@ -88,15 +88,20 @@ function tk_notifications_callback_field_list_subscribers() {
   
   foreach ($subscription_list as $key => $subscription) {
     
+    $hash = md5($subscription->id . $subscription->email);
+    $remove_link = home_url() . '/tk_notifications_unsubscribe' . '=' . $hash;
+
     $sub = json_decode( $subscription->tax_selection );
     
-    $sub_1d = tk_notifications_unwrap_arrays
-( $sub );
+    $sub_1d = tk_notifications_unwrap_arrays( $sub );
     $sub_string = implode(", ", $sub_1d);
+    
     
     echo '<tr>';
     echo '<td class="sub-id">';
+    echo '<a href="'. $remove_link .'">';
     echo "$subscription->id";
+    echo '</a>';  
     echo '</td><td class="sub-email">';
     echo "$subscription->email";
     echo '</td><td class="sub-tax">';
@@ -113,10 +118,10 @@ function tk_notifications_callback_field_list_subscribers() {
 //
 
 function tk_notifications_callback_field_remove_subscribers() {
-
-    // echo '<p>This field will show the remove subscribers form.</p>';
-
-    tk_notifications_create_remove_subscription_form();
+  
+  // echo '<p>This field will show the remove subscribers form.</p>';
+  
+  tk_notifications_create_remove_subscription_form();
 }
 
 
@@ -131,23 +136,22 @@ function tk_notifications_callback_field_remove_subscribers() {
 
 function tk_notifications_unwrap_arrays( $array ) {
   
-    if( !is_array( $array ) ) {
-      return false;
-      
-    } else {
-      
-      $arr = array();
-      foreach ( $array as $key => $value ) {
-        if( is_array( $value )) {
-          $arr = array_merge( $arr, tk_notifications_unwrap_arrays
+  if( !is_array( $array ) ) {
+    return false;
+    
+  } else {
+    
+    $arr = array();
+    foreach ( $array as $key => $value ) {
+      if( is_array( $value )) {
+        $arr = array_merge( $arr, tk_notifications_unwrap_arrays
         ( $value ));
-        } else {
-          if ( $value != null ) {
-            $arr[] = $value;
-          }
+      } else {
+        if ( $value != null ) {
+          $arr[] = $value;
         }
       }
     }
-    return $arr;
   }
-  
+  return $arr;
+}
