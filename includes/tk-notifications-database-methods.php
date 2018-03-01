@@ -8,8 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-
-
 //
 // Create a table to store subscriber information
 //
@@ -42,9 +40,6 @@ function tk_notifications_database_create_table() {
 		}
 		add_option( "tk_notification_db_version", $tk_notification_db_version );
 	}
-	// register_activation_hook( __FILE__, 'tk_notifications_database_create_table' );
-	
-	
 	
 	
 	//
@@ -70,7 +65,6 @@ function tk_notifications_database_create_table() {
 	//
 	
 	function tk_notifications_database_create_table_data( $data, $args ) {
-		
 		global $wpdb;
 		
 		$email = $data;
@@ -144,7 +138,6 @@ function tk_notifications_database_create_table() {
 					
 					return $success;
 				}
-				
 				
 				
 				//

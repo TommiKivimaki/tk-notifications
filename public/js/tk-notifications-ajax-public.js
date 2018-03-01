@@ -1,8 +1,7 @@
-/*
-	
-	MUN VIRITÄMÄ Ajax Example - JavaScript for public pages
-	
-*/
+//
+// TK Notifications - Script to submit values from the form to backend. 
+//
+
 (function($) {
 	
 	$(document).ready(function() {
@@ -19,9 +18,7 @@
 			// define values
 			var email = $('#email').val();
 			var $this = $(this);
-			// var formData = new FormData( this );
-			// var captcha = $('#g-recaptcha-response').val();
-
+			
 			// submit the data
 			$.post(ajax_public.ajaxurl, {
 				
