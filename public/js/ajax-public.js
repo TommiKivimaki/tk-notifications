@@ -19,7 +19,8 @@
 			// define values
 			var email = $('#email').val();
 			var $this = $(this);
-			var formData = new FormData( this );
+			// var formData = new FormData( this );
+			// var captcha = $('#g-recaptcha-response').val();
 
 			// submit the data
 			$.post(ajax_public.ajaxurl, {

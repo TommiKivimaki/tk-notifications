@@ -31,5 +31,5 @@ function tk_notifications_create_form() {
   <?php
   
 }
-add_shortcode('tknotification', 'tk_notifications_create_form'); // Muuta shortcode monikkoon!
+add_shortcode('tknotifications', 'tk_notifications_create_form'); // Muuta shortcode monikkoon!
 
