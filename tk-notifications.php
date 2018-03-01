@@ -31,13 +31,13 @@ $tk_notification_db_version = '1.0';
 // Public includes
 //
 
-require_once plugin_dir_path( __FILE__ ) . 'public/tk-notifications-add-form.php';
 require_once plugin_dir_path( __FILE__ ) . 'public/tk-notifications-add-ajax-form.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-database-methods.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-recaptcha.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/tk-notifications-rest-api.php';
-require_once plugin_dir_path( __FILE__ ) . 'templates/tk-notifications-form-layout.php';
 require_once plugin_dir_path( __FILE__ ) . 'templates/tk-notifications-ajax-form-layout.php';
+require_once plugin_dir_path( __FILE__ ) . 'templates/tk-notifications-email.php';
+require_once plugin_dir_path( __FILE__ ) . 'templates/tk-notifications-confirmation-email.php';
 
 
 //
@@ -130,7 +130,6 @@ function tk_notifications_on_deactivation() {
   
   if ( ! current_user_can( 'activate_plugins') ) return;
   
-  // tk_notifications_database_remove_table();
 }
 register_deactivation_hook( __FILE__, 'tk_notifications_on_deactivation' );
 
@@ -214,44 +213,8 @@ function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID
         }
       }
     }
-    write_log($mailing_list);
-    // tk_notifications_create_email( $mailing_list, $ID, $post, false );
+    tk_notifications_email( $mailing_list, $ID, $post);
   }
-}
-
-
-//
-// Send an email to subscribers
-//
-
-function tk_notifications_create_email( $mailing_list, $ID, $post, $confirmation ) {
-  
-  $mail_subject = '';
-  $mail_message = '';
-  
-  if ( $confirmation == true ) {  // Sends a confirmation message to a new subscriber
-    $mail_subject = sprintf('You have subscribed to email notifications');
-    $mail_message = sprintf('Hi! \n\n You have subscribed to get email notifications from this website.');
-  } else {
-    $title = $post->post_title;
-    $permalink = get_permalink( $ID );
-    $mail_subject = sprintf( 'Published: %s', $title );
-    $mail_message = sprintf('Hi! \n\n You can view the article here: %s \n', $permalink );
-  }
-  
-  tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post );
-}
-
-
-//
-// Method to send an email
-//
-
-function tk_notification_send_email( $mailing_list, $mail_subject, $mail_message, $ID, $post ) {
-  
-  $headers[] = 'From: WordPress <me@example.net>';
-  wp_mail( $mailing_list, $mail_subject, $mail_message, $headers );
-  
 }
 
 
@@ -263,9 +226,6 @@ function tk_notifications_ajax_public_handler() {
   
   // check nonce
   check_ajax_referer( 'ajax_public', 'nonce' );
-  
-  
-  write_log($_POST);
   
   $email = isset( $_POST['email'] ) ? sanitize_email( $_POST[ 'email' ] ) : false;
   $data = $_POST[ 'data' ];
@@ -292,12 +252,12 @@ function tk_notifications_ajax_public_handler() {
   // If site visitor verify recaptcha. If admin there's no need to verify recaptcha
   if( tk_notifications_verify_captcha_ajax( $captcha ) ) {
     
-    // $user_selection = array("post_types" => $post_type, "categories" => $category, "tags" => $tag, "ratings" => $rating );
     $user_selection = array($post_type, $category, $tag, $rating );
     
     $success = tk_notifications_database_create_table_data( $email, $user_selection );
     
     echo 'Your subscription was successful.' . "\n";
+    tk_notifications_confirmation_email( $email );
     
   } else {
     echo 'Please fill-in the reCAPTCHA';
@@ -311,27 +271,3 @@ function tk_notifications_ajax_public_handler() {
 add_action( 'wp_ajax_public_hook', 'tk_notifications_ajax_public_handler' );
 // ajax hook for non-logged-in users: wp_ajax_nopriv_{action}
 add_action( 'wp_ajax_nopriv_public_hook', 'tk_notifications_ajax_public_handler' );
-
-
-
-
-
-
-
-
-
-
-
-//
-// Just for DEBUG. REMOVE FROM PRODUCTION CODE
-//
-
-function write_log ( $log )  {
-  if ( true === WP_DEBUG ) {
-    if ( is_array( $log ) || is_object( $log ) ) {
-      error_log( print_r( $log, true ) );
-    } else {
-      error_log( $log );
-    }
-  }
-}
