@@ -73,12 +73,20 @@ function tk_notifications_callback_field_list_subscribers() {
   
   $subscription_list = tk_notifications_database_get_table();
   
-  echo '<table class="subscription_list">';
-  echo '<tr>';
-  echo '<th class="sub-id sub-head">ID</th>';
-  echo '<th class="sub-email sub-head">Email</th>';
-  echo '<th class="sub-tax sub-head">Subscription</th>';
-  echo '</tr> ';
+  // echo '<table class="subscription_list">';
+  // echo '<tr>';
+  // echo '<th class="sub-id sub-head">ID</th>';
+  // echo '<th class="sub-email sub-head">Email</th>';
+  // echo '<th class="sub-tax sub-head">Subscription</th>';
+  // echo '</tr> ';
+
+  $html = '<table class="subscription_list">';
+  $html .= '<tr>';
+  $html .= '<th class="sub-id sub-head">ID</th>';
+  $html .= '<th class="sub-email sub-head">Email</th>';
+  $html .= '<th class="sub-tax sub-head">Subscription</th>';
+  $html .= '</tr> ';
+  echo $html;
   
   foreach ($subscription_list as $key => $subscription) {
     
@@ -90,21 +98,67 @@ function tk_notifications_callback_field_list_subscribers() {
     $sub_1d = tk_notifications_unwrap_arrays( $sub );
     $sub_string = implode(", ", $sub_1d);
     
-    echo '<tr>';
-    echo '<td class="sub-id">';
-    echo '<a href="'. $remove_link .'">';
-    echo "$subscription->id";
-    echo '</a>';  
-    echo '</td><td class="sub-email">';
-    echo "$subscription->email";
-    echo '</td><td class="sub-tax">';
-    echo "$sub_string";
-    echo '</td>';
-    echo '</tr>';
+    $html = '<tr>';
+    $html .= '<td class="sub-id">';
+    $html .= '<a id="' . $sub_hash . '" href="'. $remove_link .'">';
+    $html .= "$subscription->id";
+    $html .= '</a>';
+    $html .= '</td><td class="sub-email">';
+    $html .= "$subscription->email";
+    $html .= '</td><td class="sub-tax">';
+    $html .= "$sub_string";
+    $html .= '</td>';
+    $html .= '</tr>';
+    echo $html;
+
+    // echo '<tr>';
+    // echo '<td class="sub-id">';
+    // echo '<a id="' . $sub_hash . '" href="'. $remove_link .'">';
+    // echo "$subscription->id";
+    // echo '</a>';  
+    // echo '</td><td class="sub-email">';
+    // echo "$subscription->email";
+    // echo '</td><td class="sub-tax">';
+    // echo "$sub_string";
+    // echo '</td>';
+    // echo '</tr>';
   }
   echo '</table>';
+  echo '<div class="koepala"></div>'; // ********************
 }
 
+
+//
+// Handles updating the subscription list table
+//
+
+function tk_notifications_ajax_table_refresh_handler() {
+
+  check_ajax_referer( 'ajax_admin', 'nonce' );
+
+  if ( ! current_user_can( 'manage_options' ) ) return;
+
+  $sub_hash = isset( $_POST['sub_hash']) ? $_POST['sub_hash'] : false;
+  write_log($_POST);
+
+  // echo 'sub_hash oli' . $sub_hash . ' - ';
+  echo '{tk_notifications_database_get_table()}';
+
+  wp_die();
+}
+add_action( 'wp_ajax_admin_hook', 'tk_notifications_ajax_table_refresh_handler' );
+
+
+// DEBUG ONLY
+function write_log ( $log )  {
+  if ( true === WP_DEBUG ) {
+    if ( is_array( $log ) || is_object( $log ) ) {
+      error_log( print_r( $log, true ) );
+    } else {
+      error_log( $log );
+    }
+  }
+}
 
 //
 //  Show settings field to list all subscribers

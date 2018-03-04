@@ -91,12 +91,13 @@ add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_style');
 
 
 //
-// Enqueue scripts
+// Enqueue public scripts
 //
 
 function tk_notifications_enqueue_scripts() {
   
   wp_enqueue_script( 'recaptcha', 'https://www.google.com/recaptcha/api.js' );
+
   
   // Ajax script 
   
@@ -105,21 +106,37 @@ function tk_notifications_enqueue_scripts() {
   
   // enqueue script
   wp_enqueue_script( 'tk-notifications-ajax-public', $script_url, array( 'jquery' ) );
-  
-  // create nonce
+
+  // localize
   $nonce = wp_create_nonce( 'ajax_public' );
-  
-  // define ajax url
-  $ajax_url = admin_url( 'admin-ajax.php' );
-  
-  // define script
+  $ajax_url = admin_url( 'admin-ajax.php' ); // ajaxurl needs to be defined for public side
   $script = array( 'nonce' => $nonce, 'ajaxurl' => $ajax_url );
-  
-  // localize script
   wp_localize_script( 'tk-notifications-ajax-public', 'ajax_public', $script );
   
 }
 add_action('wp_enqueue_scripts', 'tk_notifications_enqueue_scripts');
+
+
+//
+// Enqueue Admin scripts
+//
+
+function tk_notifications_enqueue_admin_scripts() {
+  
+  // define script url
+  $script_url = plugins_url( '/admin/js/tk-notifications-ajax-table-refresh.js', __FILE__ );
+  
+  // enqueue
+  wp_enqueue_script( 'tk-notifications-ajax-table-refresh', $script_url, array( 'jquery' ) );
+
+  // localize
+  $nonce = wp_create_nonce( 'ajax_admin' );
+  $script = array( 'nonce' => $nonce );
+  wp_localize_script( 'tk-notifications-ajax-table-refresh', 'ajax_admin', $script );
+
+}
+add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_scripts' );
+
 
 
 //
