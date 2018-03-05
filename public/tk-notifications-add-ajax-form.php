@@ -30,4 +30,4 @@ function tk_notifications_create_ajax_form() {
     <?php
     
 }
-add_shortcode('tknotificationsajax', 'tk_notifications_create_ajax_form'); 
+add_shortcode('tknotifications', 'tk_notifications_create_ajax_form'); 
