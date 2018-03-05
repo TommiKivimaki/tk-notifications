@@ -7,10 +7,15 @@ if ( ! defined( 'ABSPATH' ) ) {
   
 }
 
-function tk_notifications_confirmation_email( $to ) {
+function tk_notifications_confirmation_email( $to, $sub_hash ) {
     $mail_subject = 'You have subscribed to email notifications';
-    $mail_message = 'Hi! You have subscribed to get email notifications from XXX';
     $headers[] = 'From: WordPress <me@example.net>';
+
+    $remove_link = home_url() . '/wp-json/tk_notifications/v1/unsubscribe?hash' . '=' . $sub_hash;
+    
+    // Format the outgoing mail message
+    $mail_message = 'Hi! You have subscribed to get email notifications from XXXXX.';
+    $mail_message .= 'Click <a href="' . $remove_link . '"> this link</a> to cancel your subscription.';
 
     wp_mail( $to, $mail_subject, $mail_message, $headers );
 }

@@ -113,17 +113,6 @@ function tk_notifications_ajax_table_refresh_handler() {
 add_action( 'wp_ajax_admin_hook', 'tk_notifications_ajax_table_refresh_handler' );
 
 
-// DEBUG ONLY
-function write_log ( $log )  {
-  if ( true === WP_DEBUG ) {
-    if ( is_array( $log ) || is_object( $log ) ) {
-      error_log( print_r( $log, true ) );
-    } else {
-      error_log( $log );
-    }
-  }
-}
-
 //
 //  Show settings field to list all subscribers
 //

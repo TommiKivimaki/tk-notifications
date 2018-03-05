@@ -209,13 +209,15 @@ function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID
   $data = $wpdb->get_results( $query );
   
   $mailing_list = [];
+  $sub_hash_list = [];
   
   
   // Go through all subscribers and their subscriptions
   if ( null !== $data ) {
     foreach ($data as $key => $user) {  // Loop through rows
       $user_email = $user->email;
-      
+      $user_sub_hash = $user->sub_hash;
+
       $subscription = json_decode( $user->tax_selection, true ); // Decode user's subscription
       
       // loop through arrays in tax_selection array
@@ -224,7 +226,7 @@ function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID
         foreach ($taxonomy_arrays as $key => $taxonomy) {
           // if users taxonomy selection matches post taxonomies push user to a mailing_list
           if (in_array( $taxonomy, $post_categories ) || in_array( $taxonomy, $post_tags )) {
-            array_push( $mailing_list, $user_email );
+            array_push( $mailing_list, array($user_email, $user_sub_hash) );
             break 2;
           }
         }
@@ -271,10 +273,11 @@ function tk_notifications_ajax_public_handler() {
     
     $user_selection = array($post_type, $category, $tag, $rating );
     
-    $success = tk_notifications_database_create_table_data( $email, $user_selection );
+    $sub_hash = tk_notifications_database_create_table_data( $email, $user_selection );
     
     echo 'Your subscription was successful.' . "\n";
-    tk_notifications_confirmation_email( $email );
+
+    tk_notifications_confirmation_email( $email, $sub_hash );
     
   } else {
     echo 'Please fill-in the reCAPTCHA';
