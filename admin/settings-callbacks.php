@@ -52,33 +52,12 @@ function tk_notifications_callback_text_field( $args ) {
 
 
 //
-//  Show remove subscription field
-//
-
-// function tk_notifications_callback_field_add_subscribers() {
-  
-//   echo '<p>Pick the topics you want to subscribe and type in an email address.</p>';
-  
-//   tk_notifications_create_form();
-// }
-
-
-//
 //  Show settings field to list all subscribers
 //
 
 function tk_notifications_callback_field_list_subscribers() {
   
-  // echo '<p>Subscriptions</p>';
-  
   $subscription_list = tk_notifications_database_get_table();
-  
-  // echo '<table class="subscription_list">';
-  // echo '<tr>';
-  // echo '<th class="sub-id sub-head">ID</th>';
-  // echo '<th class="sub-email sub-head">Email</th>';
-  // echo '<th class="sub-tax sub-head">Subscription</th>';
-  // echo '</tr> ';
 
   $html = '<table class="subscription_list">';
   $html .= '<tr>';
@@ -110,26 +89,13 @@ function tk_notifications_callback_field_list_subscribers() {
     $html .= '</td>';
     $html .= '</tr>';
     echo $html;
-
-    // echo '<tr>';
-    // echo '<td class="sub-id">';
-    // echo '<a id="' . $sub_hash . '" href="'. $remove_link .'">';
-    // echo "$subscription->id";
-    // echo '</a>';  
-    // echo '</td><td class="sub-email">';
-    // echo "$subscription->email";
-    // echo '</td><td class="sub-tax">';
-    // echo "$sub_string";
-    // echo '</td>';
-    // echo '</tr>';
   }
   echo '</table>';
-  echo '<div class="koepala"></div>'; // ********************
 }
 
 
 //
-// Handles updating the subscription list table
+// Handles updating the subscription list table using Ajax when admin removes a subscription
 //
 
 function tk_notifications_ajax_table_refresh_handler() {
@@ -139,10 +105,8 @@ function tk_notifications_ajax_table_refresh_handler() {
   if ( ! current_user_can( 'manage_options' ) ) return;
 
   $sub_hash = isset( $_POST['sub_hash']) ? $_POST['sub_hash'] : false;
-  write_log($_POST);
 
-  // echo 'sub_hash oli' . $sub_hash . ' - ';
-  echo '{tk_notifications_database_get_table()}';
+  tk_notifications_database_remove_table_data( $sub_hash );
 
   wp_die();
 }
