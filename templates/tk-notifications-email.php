@@ -27,7 +27,7 @@ function tk_notifications_email( $mailing_list, $ID, $post ) {
     
     // Format the outgoing mail message
     $mail_message = '';
-    $mail_message .= sprintf('Hi! You can view the article here: %s ', $permalink );
+    $mail_message .= 'Hi!' . "\n\n" . 'You can view the article here: <a href="' . $permalink . '">' . $title . '</a>.' . "\n\n";
     $mail_message .= 'Click <a href="' . $remove_link . '"> this link</a> to cancel your subscription.';
     
     wp_mail( $user_email, $mail_subject, $mail_message, $headers );
