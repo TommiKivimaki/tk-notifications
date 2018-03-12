@@ -14,6 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 function tk_notifications_create_ajax_form() {
     
+    if ( is_admin() ) {
+        return;
+    }
+    
     ?>
     
     <form method="post" class="ajax-form">
