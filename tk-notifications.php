@@ -171,11 +171,12 @@ register_uninstall_hook( __FILE__, 'tk_notifications_on_uninstall' );
 
 function tk_notifications_read_post_categories_tags( $ID, $post ) {
   
+  $post_type = [];
   $categories = [];
   $tags = [];
   $ratings = [];
-  $post_type = [];
-
+  $post_taxonomies = [];
+  
   // Get post type by post.
   array_push($post_type, $post->post_type);
   
@@ -195,7 +196,10 @@ function tk_notifications_read_post_categories_tags( $ID, $post ) {
     $ratings = wp_list_pluck( $post_ratings, 'term_taxonomy_id' );  
   }
   
-  tk_notifications_create_mailing_list( $post_type, $categories, $tags, $ratings, $ID, $post );
+  // Collect all the taxonomies
+  array_push( $post_taxonomies, $post_type, $categories, $tags, $ratings );
+  
+  tk_notifications_create_mailing_list( $post_taxonomies, $ID, $post );
 }
 add_action( 'publish_post', 'tk_notifications_read_post_categories_tags', 10, 2 );
 add_action( 'publish_page', 'tk_notifications_read_post_categories_tags', 10, 2 );
@@ -205,7 +209,7 @@ add_action( 'publish_page', 'tk_notifications_read_post_categories_tags', 10, 2 
 // Create a mailing list based on subscriptions
 //
 
-function tk_notifications_create_mailing_list( $post_type, $post_categories, $post_tags, $post_ratings, $ID, $post ) {
+function tk_notifications_create_mailing_list( $post_taxonomies, $ID, $post ) {
   
   // Read all subsribers
   global $wpdb;
@@ -219,6 +223,7 @@ function tk_notifications_create_mailing_list( $post_type, $post_categories, $po
   $mailing_list = [];
   $sub_hash_list = [];
   
+  $post_taxonomies_unwrapped = tk_notifications_unwrap_arrays( $post_taxonomies );
   
   // Go through all subscribers and their subscriptions
   if ( null !== $data ) {
@@ -232,12 +237,7 @@ function tk_notifications_create_mailing_list( $post_type, $post_categories, $po
       foreach ($subscription as $key => $taxonomy_arrays) {
         // loop through all taxonomy_arrays to get individual taxonomies
         foreach ($taxonomy_arrays as $key => $taxonomy) {
-          write_log( $taxonomy);
-          // if users taxonomy selection matches post taxonomies push user to a mailing_list
-          if (in_array( $taxonomy, $post_type ) ||
-          in_array( $taxonomy, $post_categories ) || 
-          in_array( $taxonomy, $post_tags ) || 
-          in_array( $taxonomy, $post_ratings )) {
+          if (in_array( $taxonomy, $post_taxonomies_unwrapped)) {
             array_push( $mailing_list, array($user_email, $user_sub_hash) );
             break 2;
           }
@@ -320,17 +320,3 @@ function rating_taxonomy() {
     );
   }
   add_action( 'init', 'rating_taxonomy' );
-  
-  
-  //
-  // DEBUG!!
-  //
-  function write_log ( $log )  {
-    if ( true === WP_DEBUG ) {
-      if ( is_array( $log ) || is_object( $log ) ) {
-        error_log( print_r( $log, true ) );
-      } else {
-        error_log( $log );
-      }
-    }
-  }
