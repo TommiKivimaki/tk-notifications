@@ -14,9 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 function tk_notifications_ajax_form_layout() {
   
+  // Fetch all the necessary taxonomies.
   $all_categories = get_categories();
   $all_tags = get_tags();
-  
+  $all_ratings = get_terms( array( 'taxonomy' => 'rating', 'hide_empty' => false, ));
+
   ob_start();
   ?>
   
@@ -37,9 +39,10 @@ function tk_notifications_ajax_form_layout() {
   ?>
   
   <select name="rating">
-  <option value="best">best</option>
-  <option value="ok">ok</option>
-  <option value="worst">worst</option>
+  <?php foreach($all_ratings as $rating) {
+    echo '<option value="' . $rating->term_taxonomy_id . '" /> ' . $rating->name . '</option>';
+  }      
+  ?>
   </select>
   
   <p>E-mail address:</p>

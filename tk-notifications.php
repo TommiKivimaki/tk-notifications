@@ -97,7 +97,7 @@ add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_style');
 function tk_notifications_enqueue_scripts() {
   
   wp_enqueue_script( 'recaptcha', 'https://www.google.com/recaptcha/api.js' );
-
+  
   
   // Ajax script 
   
@@ -106,7 +106,7 @@ function tk_notifications_enqueue_scripts() {
   
   // enqueue script
   wp_enqueue_script( 'tk-notifications-ajax-public', $script_url, array( 'jquery' ) );
-
+  
   // localize
   $nonce = wp_create_nonce( 'ajax_public' );
   $ajax_url = admin_url( 'admin-ajax.php' ); // ajaxurl needs to be defined for public side
@@ -128,12 +128,12 @@ function tk_notifications_enqueue_admin_scripts() {
   
   // enqueue
   wp_enqueue_script( 'tk-notifications-ajax-table-refresh', $script_url, array( 'jquery' ) );
-
+  
   // localize
   $nonce = wp_create_nonce( 'ajax_admin' );
   $script = array( 'nonce' => $nonce );
   wp_localize_script( 'tk-notifications-ajax-table-refresh', 'ajax_admin', $script );
-
+  
 }
 add_action( 'admin_enqueue_scripts', 'tk_notifications_enqueue_admin_scripts' );
 
@@ -173,9 +173,11 @@ function tk_notifications_read_post_categories_tags( $ID, $post ) {
   
   $categories = [];
   $tags = [];
-  
+  $ratings = [];
+  $post_type = [];
+
   // Get post type by post.
-  $post_type = $post->post_type;
+  array_push($post_type, $post->post_type);
   
   // Get a list of categories and extract their IDs
   $post_categories = get_the_terms( $post->ID, 'category' );
@@ -187,17 +189,23 @@ function tk_notifications_read_post_categories_tags( $ID, $post ) {
   if ( ! empty( $post_tags ) && ! is_wp_error( $post_tags ) ) {
     $tags = wp_list_pluck( $post_tags, 'term_taxonomy_id' );  
   }
+  // Handle a custom rating taxonomy
+  $post_ratings = get_the_terms( $post->ID, 'rating' );
+  if ( ! empty( $post_ratings ) && ! is_wp_error( $post_ratings ) ) {
+    $ratings = wp_list_pluck( $post_ratings, 'term_taxonomy_id' );  
+  }
   
-  tk_notifications_create_mailing_list( $categories, $tags, $ID, $post );
+  tk_notifications_create_mailing_list( $post_type, $categories, $tags, $ratings, $ID, $post );
 }
 add_action( 'publish_post', 'tk_notifications_read_post_categories_tags', 10, 2 );
+add_action( 'publish_page', 'tk_notifications_read_post_categories_tags', 10, 2 );
 
 
 //
 // Create a mailing list based on subscriptions
 //
 
-function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID, $post ) {
+function tk_notifications_create_mailing_list( $post_type, $post_categories, $post_tags, $post_ratings, $ID, $post ) {
   
   // Read all subsribers
   global $wpdb;
@@ -217,15 +225,19 @@ function tk_notifications_create_mailing_list( $post_categories, $post_tags, $ID
     foreach ($data as $key => $user) {  // Loop through rows
       $user_email = $user->email;
       $user_sub_hash = $user->sub_hash;
-
+      
       $subscription = json_decode( $user->tax_selection, true ); // Decode user's subscription
       
       // loop through arrays in tax_selection array
       foreach ($subscription as $key => $taxonomy_arrays) {
         // loop through all taxonomy_arrays to get individual taxonomies
         foreach ($taxonomy_arrays as $key => $taxonomy) {
+          write_log( $taxonomy);
           // if users taxonomy selection matches post taxonomies push user to a mailing_list
-          if (in_array( $taxonomy, $post_categories ) || in_array( $taxonomy, $post_tags )) {
+          if (in_array( $taxonomy, $post_type ) ||
+          in_array( $taxonomy, $post_categories ) || 
+          in_array( $taxonomy, $post_tags ) || 
+          in_array( $taxonomy, $post_ratings )) {
             array_push( $mailing_list, array($user_email, $user_sub_hash) );
             break 2;
           }
@@ -276,7 +288,7 @@ function tk_notifications_ajax_public_handler() {
     $sub_hash = tk_notifications_database_create_table_data( $email, $user_selection );
     
     echo 'Your subscription was successful.' . "\n";
-
+    
     tk_notifications_confirmation_email( $email, $sub_hash );
     
   } else {
@@ -291,3 +303,34 @@ function tk_notifications_ajax_public_handler() {
 add_action( 'wp_ajax_public_hook', 'tk_notifications_ajax_public_handler' );
 // ajax hook for non-logged-in users: wp_ajax_nopriv_{action}
 add_action( 'wp_ajax_nopriv_public_hook', 'tk_notifications_ajax_public_handler' );
+
+
+//
+// EXAMPLE: Register custom taxonomy
+// Add this custom taxonomy to the subscription form (tk-notifications-ajax-form-layout.php) so users can subscribe to it. 
+//
+function rating_taxonomy() {
+  register_taxonomy(
+    'rating',
+    'post',
+    array(
+      'label' => __( 'Rating' ),
+      'rewrite' => array( 'slug' => 'rating' )
+      )
+    );
+  }
+  add_action( 'init', 'rating_taxonomy' );
+  
+  
+  //
+  // DEBUG!!
+  //
+  function write_log ( $log )  {
+    if ( true === WP_DEBUG ) {
+      if ( is_array( $log ) || is_object( $log ) ) {
+        error_log( print_r( $log, true ) );
+      } else {
+        error_log( $log );
+      }
+    }
+  }
