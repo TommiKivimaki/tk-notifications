@@ -4,7 +4,7 @@ Plugin Name:  TK Notifications
 Description:  Sends notifications to subscribed users when a new post is published.
 Plugin URI:   
 Author:       Tommi Kivimäki
-Version:      0.1.0
+Version:      0.3.6
 Text Domain:  tknotifications
 Domain Path:  /languages
 License:      
